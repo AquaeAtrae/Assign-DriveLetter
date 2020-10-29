@@ -54,30 +54,31 @@ function Assign-DriveLetter {
 
 		if (!$Drive) {
         'ERROR: Must identify the drive to assign letter with an existing DriveID, DriveSerial, or DriveLabel'
-    }
+    } else {
+			if ($DesiredDriveLetter + ":" -ne $Drive.DriveLetter) {
+					$takenDriveLetters = (Get-PSDrive).Name -like '?'
+					if ($DesiredDriveLetter -in $takenDriveLetters) {
+							# Reassign existing drive to first unused drive letter to release the drive letter
+							$firstUnusedDriveLetter = [char[]] (0x44..0x5a) | where { $_ -notin $takenDriveLetters } | select -first 1  # ASCII letters D through Z
+							
+							Write-Host "Moving existing drive from $DesiredDriveLetter`: to $firstUnusedDriveLetter`:"
+							$ExistingDrive = gwmi Win32_Volume | where {$_.DriveLetter -like $DesiredDriveLetter + ":"}
 
-    if ($DesiredDriveLetter + ":" -ne $Drive.DriveLetter) {
-        $takenDriveLetters = (Get-PSDrive).Name -like '?'
-        if ($DesiredDriveLetter -in $takenDriveLetters) {
-            # Reassign existing drive to first unused drive letter to release the drive letter
-            $firstUnusedDriveLetter = [char[]] (0x44..0x5a) | where { $_ -notin $takenDriveLetters } | select -first 1  # ASCII letters D through Z
-            
-            Write-Host "Moving existing drive from $DesiredDriveLetter`: to $firstUnusedDriveLetter`:"
-            $ExistingDrive = gwmi Win32_Volume | where {$_.DriveLetter -like $DesiredDriveLetter + ":"}
+							if (!$ExistingDrive) {'Boxstarter reboot required'; Invoke-Reboot}  # boxstarter reboot
+							$ExistingDrive.AddMountPoint($firstUnusedDriveLetter + ":\")
+							$ExistingDrive.DriveLetter = $firstUnusedDriveLetter + ":"
+							$ExistingDrive.Put()
+							$ExistingDrive.Mount()
+					}
 
-            if (!$ExistingDrive) {'Boxstarter reboot required'; Invoke-Reboot}  # boxstarter reboot
-            $ExistingDrive.AddMountPoint($firstUnusedDriveLetter + ":\")
-            $ExistingDrive.DriveLetter = $firstUnusedDriveLetter + ":"
-            $ExistingDrive.Put()
-            $ExistingDrive.Mount()
-        }
+					if ((Get-PSDrive).Name -like $DesiredDriveLette) {'Boxstarter reboot required'; Invoke-Reboot}  # boxstarter reboot
 
-        if ((Get-PSDrive).Name -like $DesiredDriveLette) {'Boxstarter reboot required'; Invoke-Reboot}  # boxstarter reboot
-
-        Write-Host "Assigning drive to $DesiredDriveLetter`:"
-        $Drive.AddMountPoint($DesiredDriveLetter + ":\")
-        $Drive.DriveLetter = $DesiredDriveLetter + ":"
-        $Drive.Put()
-        $Drive.Mount()
-    }
+					Write-Host "Assigning drive to $DesiredDriveLetter`:"
+					$Drive.AddMountPoint($DesiredDriveLetter + ":\")
+					$Drive.DriveLetter = $DesiredDriveLetter + ":"
+					$Drive.Put()
+					$Drive.Mount()
+			}
+		
+		}
 }
