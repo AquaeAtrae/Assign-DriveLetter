@@ -2,7 +2,8 @@
 .Synopsis
     PowerShell cmdlet to assign a drive letter given the partition's ID, serial, or label
 .Description 
-    This powershell cmdlet 
+    This powershell cmdlet first moves any existing drive letter assignment to free up the DesiredDriveLetter. Once
+    available, it finds the first matching partition and assigns the drive letter to it.		
 	
 .Parameter $DesiredDriveLetter
     The drive letter to assign to the matching partition
