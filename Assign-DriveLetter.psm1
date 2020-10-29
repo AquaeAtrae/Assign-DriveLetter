@@ -40,14 +40,20 @@ function Assign-DriveLetter {
        [string]$DriveLabel
        )
 
-    if (!$DriveID) {  if (!$DriveSerial) {  if (!$DriveLabel) {
+		if (!$DriveLabel) {
         $Drive = gwmi Win32_Volume | where {$_.Label -like $DriveLabel} | select -First 1
-    } else {
+    } 
+
+		if (!$DriveSerial) {
         $Drive = gwmi Win32_Volume | where {$_.SerialNumber -like $DriveSerial} | select -First 1
-    } else {
+    } 
+		
+		if (!$DriveID) {  
         $Drive = gwmi Win32_Volume | where {$_.DeviceID -like $DriveID} | select -First 1
-    } else {
-        'ERROR: Must identify the drive to assign letter via DriveID, DriveSerial, or DriveLabel'
+    } 
+
+		if (!$Drive) {
+        'ERROR: Must identify the drive to assign letter with an existing DriveID, DriveSerial, or DriveLabel'
     }
 
     if ($DesiredDriveLetter + ":" -ne $Drive.DriveLetter) {
