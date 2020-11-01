@@ -40,15 +40,17 @@ function Assign-DriveLetter {
        [string]$DriveLabel
        )
 
-		if (!$DriveLabel) {
+		$Drive = $null
+
+		if ($DriveLabel) {
         $Drive = gwmi Win32_Volume | where {$_.Label -like $DriveLabel} | select -First 1
     } 
 
-		if (!$DriveSerial) {
+		if ($DriveSerial) {
         $Drive = gwmi Win32_Volume | where {$_.SerialNumber -like $DriveSerial} | select -First 1
     } 
 		
-		if (!$DriveID) {  
+		if ($DriveID) {  
         $Drive = gwmi Win32_Volume | where {$_.DeviceID -like $DriveID} | select -First 1
     } 
 
